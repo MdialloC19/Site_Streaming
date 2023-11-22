@@ -84,6 +84,10 @@ async function displayMovieDetails(){
     const movieId = urlParams.get('id');
     const results = await fetchApiData(`movie/${movieId}`);
 
+    // Overlay for background  image
+
+    displayBackgroundImage('movie',results.backdrop_path);
+    
     const elt= document.querySelector('#movie-details')
 
     const div=document.createElement('div');
@@ -126,8 +130,8 @@ async function displayMovieDetails(){
     div1.innerHTML=` 
           <h2>Movie Info</h2>
           <ul>
-            <li><span class="text-secondary">Budget:</span>  ${results.budget}</li>
-            <li><span class="text-secondary">Revenue:</span> ${results.revenue} </li>
+            <li><span class="text-secondary">Budget:</span>  $${addCommaToNumber(results.budget)}</li>
+            <li><span class="text-secondary">Revenue:</span> $${addCommaToNumber(results.revenue)} </li>
             <li><span class="text-secondary">Runtime:</span> ${results.runtime}</li>
             <li><span class="text-secondary">Status:</span>  ${results.status}</li>
           </ul>
@@ -144,15 +148,11 @@ async function displayShowDetails(){
     const urlParams = new URLSearchParams(window.location.search);
     const movieId = urlParams.get('id');
     const results = await fetchApiData(`tv/${movieId}`);
-
-    const elt= document.querySelector('#show-details')
-
+     displayBackgroundImage('shows',results.backdrop_path);
+   
     const div=document.createElement('div');
-    div.classList.add('details-top');
-    const div1=document.createElement('div');
-    div1.classList.add('details-bottom');
-
     div.innerHTML=`
+    <div class="details-top">
     <div>
         ${
             results.poster_path
@@ -183,9 +183,9 @@ async function displayShowDetails(){
             ${results.genres.map(genre => `<li>${genre.name}</li>`).join('')}
         </ul>
        <a href="${results.homepage}" target="_blank" class="btn">Visit Movie Homepage</a>
-    </div>`;
-
-    div1.innerHTML=`
+    </div>
+     </div>
+   <div class="details-bottom">
         <h2>Show Info</h2>
           <ul>
                 <li><span class="text-secondary">Number Of Episodes:</span> ${results.number_of_episodes}</li>
@@ -195,16 +195,38 @@ async function displayShowDetails(){
                 <li><span class="text-secondary">Status:</span> ${results.status} </li>
           </ul>
           <h4>Production Companies</h4>
-           <div class="list-group"> ${results.production_companies.map(companie=>companie.name).join(", ")}</div>`
+           <div class="list-group"> 
+                ${results.production_companies
+                    .map(companie=>companie.name).join(", ")}
+            </div>
+    </div>`
+    document.querySelector('#show-details').appendChild(div);
 
-     
-   
-    
-    elt.appendChild(div);
-    elt.appendChild(div1);
+
+// Display Backdrop On details Pages
+
 
 }
+function displayBackgroundImage(type, backgroundPath){
+    const overlayDiv=document.createElement('div');
+    overlayDiv.style.backgroundImage = `url(https://image.tmdb.org/t/p/original/${backgroundPath})`;
+    overlayDiv.style.backgroundSize = 'cover';
+    overlayDiv.style.backgroundPosition = 'center';
+    overlayDiv.style.backgroundRepeat = 'no-repeat';
+    overlayDiv.style.height = '100vh';
+    overlayDiv.style.width = '100vw';
+    overlayDiv.style.position = 'absolute';
+    overlayDiv.style.top = '0';
+    overlayDiv.style.left = '0';
+    overlayDiv.style.zIndex = '-1';
+    overlayDiv.style.opacity = '0.3';
 
+    if (type === 'movie') {
+        document.querySelector('#movie-details').appendChild(overlayDiv);
+    } else {
+        document.querySelector('#show-details').appendChild(overlayDiv);
+    }
+}
 
 // Fetching Data from API
 async function fetchApiData(endPoint){
@@ -240,6 +262,10 @@ function highlightActiveLink() {
       link.classList.add('active');
     }
   });
+}
+
+function addCommaToNumber(number){
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
 
